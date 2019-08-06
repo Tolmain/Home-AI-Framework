@@ -1,4 +1,5 @@
-from numpy import asarray, dot, sort, floor
+from numpy import asarray, dot, sort, floor, shape
+import tensorflow as tf
 
 
 class LocalDataset:
@@ -18,20 +19,29 @@ class LocalDataset:
         operating_dataset = getattr(self, arg1)
         if operating_dataset.dtype == 'int32' and operating_dataset.size > 3:
             sorted_set = sort(operating_dataset)
-            if type(sorted_set.size / 2) == 'int':
-                median_value = ((sorted_set.tolist()[floor(sorted_set.size / 2)] + sorted_set.tolist()[
-                    floor(sorted_set.size) / 2 + 1]) / 2)
-            else:
-                median_value = sorted_set.tolist()[sorted_set.size / 2]
-            if type(sorted_set.size / 4) == 'int':
-                q1_value = (sorted_set.tolist()[floor(sorted_set.size / 4)] + sorted_set.tolist()[
-                    floor(sorted_set.size) / 4 + 1]) / 2
-            else:
-                median_value = sorted_set.tolist()[sorted_set.size / 4]
-            return median_value, q1_value
+            median_value, median_index, offset = self.__find_median_in_list(list(sorted_set))
+            q1_value, _, _ = self.__find_median_in_list(list(sorted_set)[:median_index])
+            q3_value, _, _ = self.__find_median_in_list(list(sorted_set)[median_index+offset:])
+            return q1_value, median_value, q3_value
         return False
 
-    #def mean_squared_error(self, arg1, arg2):
+    @staticmethod
+    def __find_median_in_list(information: list):
+        median_value, median_index, offset = (0, 0, 0)
+
+        if len(information) % 2 == 0:
+            length = len(information)
+            median_value = (information[int((length - 1) / 2)] + information[int((length- 1) / 2) + 1]) / 2
+            median_index = int(length / 2)
+        else:
+            length = len(information)
+            median_value = information[int((length - 1) / 2)]
+            median_index = int(length / 2)
+            offset = 1
+        return median_value, median_index, offset
+
+    def mean_squared_error(self, true, predicted):
+        return tf.losses.mean_squared_error(getattr(self, true), getattr(self, predicted))
 
 
 
