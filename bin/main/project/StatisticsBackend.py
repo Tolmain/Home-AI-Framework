@@ -43,6 +43,9 @@ class LocalDataset:
     def mean_squared_error(self, true, predicted):
         return tf.losses.mean_squared_error(getattr(self, true), getattr(self, predicted))
 
+    def absolute_difference(self, true, predicted):
+        return tf.losses.absolute_difference(getattr(self, true), getattr(self, predicted))
+
 
 
 
